@@ -5,6 +5,7 @@
  * MIT license http://www.opensource.org/licenses/mit-license.php
  */
 
+
 // Array.prototype.forEach polyfill from MDC
 if (!Array.prototype.forEach) {
 	Array.prototype.forEach = function(fun /*, thisp */) {
@@ -30,6 +31,7 @@ if (!Array.prototype.forEach) {
 	};
 }
 
+
 // Function.prototype.bind polyfill from MDC
 if (!Function.prototype.bind) {
 	Function.prototype.bind = function(obj) {
@@ -49,161 +51,193 @@ if (!Function.prototype.bind) {
 	};
 }
 
-(function() {
-var objects = [];
 
-
-var supportsDefineProperty = 'defineProperty' in Object &&
-	(function(){
-		var testDOM = document.createElement('div'),
-		    testO = {};
-		
-		try {
-			Object.defineProperty(testDOM, 'test', {
-				get: function(){},
-				set:function(){}
-			});
-			
-			Object.defineProperty(testO, 'test', {
-				get: function(){},
-				set:function(){}
-			});
-		}
-		catch(e){
-			return false;
-		}
-		
-		return true;
-	})();
-
-// Smoothen out differences between Object.defineProperty
-// and __defineGetter__/__defineSetter__
-if (supportsDefineProperty) {
-	var defineProperty = Object.defineProperty;
-}
-else if ('__defineSetter__' in Object) {
-	var defineProperty = function(o, property, etters) {
-		o.__defineGetter__(property, etters.get);
-		
-		o.__defineSetter__(property, etters.set);
-	};
-}
-else {
-	if(window.console && console.warn) {
-		console.warn('Getters and Setters are not supported so StronglyTyped will fallback to regular properties');
-	}
-	
-	// Fallback to regular properties if getters/setters are not supported
-	var defineProperty = function(o, property, etters) {
-		o[property] = undefined;
-	};
-}
-
-var self = window.StronglyTyped = {
-	/**
-	 * Generic function for defining strongly typed properties.
-	 * You're advised to use the shortcuts defined below.
-	 */
-	property: function(type, o, property, value) {
-		getProperties(o)[property] = value;
-		
-		defineProperty(o, property, {
-			get: getter.bind(o, property),
-			set: setter.bind(o, type, property)
-		});
-		
-		o[property] = value;
-	},
-	
-	/**
-	 * Constants that can't be changed
-	 */
-	constant: function(o, name, value) {
-		defineProperty(o, name, {
-			get: getter.bind(o, name),
-			set: function(value) {
-				var currentValue = getProperties(this)[name];
-				
-				if (currentValue === undefined) {
-					getProperties(this)[name] = value;
-				}
-				else {
-					// ISSUE Should we throw an error?
-				}
-			}
-		});
-		
-		o[name] = value;
-	},
-	
-	/**
-	 * Tests whether a value is of a given type
-	 */
-	is: function(type, value) {
-		switch(type) {
-			case 'Integer':
-				return self.is('Number', value) && (isNaN(value) || !isFinite(value) || value % 1 === 0);
-			default:
-				return value instanceof window[type] ||
-					Object.prototype.toString.call(value) === '[object ' + type + ']';
-		}
-	}
-};
-
-// Shortcuts
-[
-	'Array',
-	'Boolean', 
-	'Date', 
-	'Function',
-	'Integer',
-	'Number', 
-	'RegExp', 
-	'String'
-].forEach(function(type) {
-	self[type.toLowerCase()] = self.property.bind(self, type);
-});
-
-/*************************
- * Private functions
- *************************/
-
-/**
- * Generic getter
+/*
+ * The next 20 lines register StronglyTyped as either, an AMD or CommonJS module, and as a browser global. 
+ * Based on UMD's commonjsStrictGlobal.js https://github.com/umdjs/umd/blob/master/commonjsStrictGlobal.js
+ * Learn more about modular JS, AMD and CommonJS: http://addyosmani.com/writing-modular-js/
+ * @reference: CommonJS http://requirejs.org/docs/whyamd.html#commonjs
+ * @reference: AMD http://requirejs.org/docs/whyamd.html#amd
  */
-function getter(property) { 
-	return getProperties(this)[property];
-}
 
-/**
- * Generic setter
- */
-function setter(type, property, value) { 
-	if (self.is(type, value) || value === null || value === undefined) {
-		getProperties(this)[property] = value;
-	}
-	else {
-		throw TypeError(property + ' must be of type ' + type + '. ' + value + ' is not.');
-	}
-}
+(function (root, factory) {
+  
+  if (typeof exports === 'object') {
+    // CommonJS
+    factory(root, exports);
+  } 
+  else if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(['exports'], function (exports) {
+      //return (root.StronglyTyped = factory(exports, b));
+      return ( root.StronglyTyped = factory(exports) );
+      //root.Backbone = factory(root, exports, _, $);
+    });
+  } 
+  else {
+    // Browser globals
+    root.StronglyTyped = factory(root, {});
+  }
+  
+}(this, function (root, StronglyTyped) {
 
-/**
- * Finds the object and returns its strongly typed properties
- */
-function getProperties(o) {
-	for (var i=0, len=objects.length; i<len; i++) {
-		if (objects[i].object === o) {
-			return objects[i].properties;
-		}
-	}
-	
-	// If we're here, it wasn't found so let's add it now
-	i = objects.push({
-		object: o,
-		properties: {}
-	}) - 1;
-	
-	return objects[i].properties;
-}
-
-})();
+  var objects = [];
+  
+  
+  var supportsDefineProperty = 'defineProperty' in Object &&
+  	(function(){
+  		var testDOM = document.createElement('div'),
+  		    testO = {};
+  		
+  		try {
+  			Object.defineProperty(testDOM, 'test', {
+  				get: function(){},
+  				set:function(){}
+  			});
+  			
+  			Object.defineProperty(testO, 'test', {
+  				get: function(){},
+  				set:function(){}
+  			});
+  		}
+  		catch(e){
+  			return false;
+  		}
+  		
+  		return true;
+  	})();
+  
+  // Smoothen out differences between Object.defineProperty
+  // and __defineGetter__/__defineSetter__
+  if (supportsDefineProperty) {
+  	var defineProperty = Object.defineProperty;
+  }
+  else if ('__defineSetter__' in Object) {
+  	var defineProperty = function(o, property, etters) {
+  		o.__defineGetter__(property, etters.get);
+  		
+  		o.__defineSetter__(property, etters.set);
+  	};
+  }
+  else {
+  	if(window.console && console.warn) {
+  		console.warn('Getters and Setters are not supported so StronglyTyped will fallback to regular properties');
+  	}
+  	
+  	// Fallback to regular properties if getters/setters are not supported
+  	var defineProperty = function(o, property, etters) {
+  		o[property] = undefined;
+  	};
+  }
+  
+  var self;
+  self = StronglyTyped = {
+  	/**
+  	 * Generic function for defining strongly typed properties.
+  	 * You're advised to use the shortcuts defined below.
+  	 */
+  	property: function(type, o, property, value) {
+  		getProperties(o)[property] = value;
+  		
+  		defineProperty(o, property, {
+  			get: getter.bind(o, property),
+  			set: setter.bind(o, type, property)
+  		});
+  		
+  		o[property] = value;
+  	},
+  	
+  	/**
+  	 * Constants that can't be changed
+  	 */
+  	constant: function(o, name, value) {
+  		defineProperty(o, name, {
+  			get: getter.bind(o, name),
+  			set: function(value) {
+  				var currentValue = getProperties(this)[name];
+  				
+  				if (currentValue === undefined) {
+  					getProperties(this)[name] = value;
+  				}
+  				else {
+  					// ISSUE Should we throw an error?
+  				}
+  			}
+  		});
+  		
+  		o[name] = value;
+  	},
+  	
+  	/**
+  	 * Tests whether a value is of a given type
+  	 */
+  	is: function(type, value) {
+  		switch(type) {
+  			case 'Integer':
+  				return self.is('Number', value) && (isNaN(value) || !isFinite(value) || value % 1 === 0);
+  			default:
+  				return value instanceof window[type] ||
+  					Object.prototype.toString.call(value) === '[object ' + type + ']';
+  		}
+  	}
+  };
+  
+  // Shortcuts
+  [
+  	'Array',
+  	'Boolean', 
+  	'Date', 
+  	'Function',
+  	'Integer',
+  	'Number', 
+  	'RegExp', 
+  	'String'
+  ].forEach(function(type) {
+  	self[type.toLowerCase()] = self.property.bind(self, type);
+  });
+  
+  /*************************
+   * Private functions
+   *************************/
+  
+  /**
+   * Generic getter
+   */
+  function getter(property) { 
+  	return getProperties(this)[property];
+  }
+  
+  /**
+   * Generic setter
+   */
+  function setter(type, property, value) { 
+  	if (self.is(type, value) || value === null || value === undefined) {
+  		getProperties(this)[property] = value;
+  	}
+  	else {
+  		throw TypeError(property + ' must be of type ' + type + '. ' + value + ' is not.');
+  	}
+  }
+  
+  /**
+   * Finds the object and returns its strongly typed properties
+   */
+  function getProperties(o) {
+  	for (var i=0, len=objects.length; i<len; i++) {
+  		if (objects[i].object === o) {
+  			return objects[i].properties;
+  		}
+  	}
+  	
+  	// If we're here, it wasn't found so let's add it now
+  	i = objects.push({
+  		object: o,
+  		properties: {}
+  	}) - 1;
+  	
+  	return objects[i].properties;
+  }
+  
+  return StronglyTyped;
+    
+}));
