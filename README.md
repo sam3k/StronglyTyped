@@ -7,22 +7,22 @@ Also, as a bonus, you get cross-browser Function.prototype.bind and Array.protot
 
 ## Examples
 
-** Strongly Typed Variable **   
-  StronglyTyped.string(this, 'myVar', 'hello'); // define myVar as a string with value 'hello'
-  myVar = 4; // TypeError: Will throw an error   
+**Strongly Typed Variable**   
+    StronglyTyped.string(this, 'myVar', 'hello'); // define myVar as a string with value 'hello'
+    myVar = 4; // TypeError: Will throw an error   
   
-** Strongly typed properties **   
-  var o = {};
-
-  StronglyTyped.boolean(o, 'foo', true);
+**Strongly typed properties**   
+    var o = {};
   
-  console.log(o.foo); // prints true
+    StronglyTyped.boolean(o, 'foo', true);
+    
+    console.log(o.foo); // prints true
+    
+    o.foo = false;
+    console.log(o.foo); // prints false
+    
+    o.foo = 'bar'; // TypeError: foo must be of type Boolean. bar is not.  
+    
+  **Strongly typed properties** 
   
-  o.foo = false;
-  console.log(o.foo); // prints false
-  
-  o.foo = 'bar'; // TypeError: foo must be of type Boolean. bar is not.  
-  
-** Strongly typed properties ** 
-
-  StronglyTyped.constant(window, 'MAGIC_NUMBER', 3.1415926535);                               
+    StronglyTyped.constant(window, 'MAGIC_NUMBER', 3.1415926535);                               
